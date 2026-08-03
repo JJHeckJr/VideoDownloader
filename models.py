@@ -1,0 +1,8 @@
+CREATE_VIDEO_REQUESTS_TABLE = """
+CREATE TABLE IF NOT EXISTS video_requests(
+id SERIAL PRIMARY KEY, 
+url TEXT NOT NULL,
+title TEXT,
+thumbnail TEXT
+);
+"""

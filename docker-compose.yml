@@ -1,0 +1,17 @@
+services:
+  db:
+    image: postgres:16
+    container_name: videodownloader_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: videodownloader
+      POSTGRES_PASSWORD: videodownloader
+      POSTGRES_DB: videodownloader
+    ports:
+      - "5433:5432"
+    volumes:
+      - "videodownloader_pgdata:/var/lib/postgresql/data"
+  
+volumes:
+  videodownloader_pgdata:
+
