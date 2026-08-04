@@ -9,6 +9,9 @@ update_video_request,
 delete_video_request
 )
 
+from fastapi.middleware.cors import CORSMiddleware
+
+
 #App Instance
 app = FastAPI(
     title="Task Management API",
@@ -16,6 +19,13 @@ app = FastAPI(
     version="0.1.0"
 
 ) 
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class VideoSubmission(BaseModel):
     url: str
