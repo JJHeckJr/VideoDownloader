@@ -1,12 +1,14 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from pydantic import BaseModel
 import yt_dlp
 from database import get_db
+from video_download import preview_video, download_video
 from db_operations import (
 create_video_request, 
 get_video_request, 
 update_video_request,
-delete_video_request
+delete_video_request,
+get_all_video_request,
 )
 
 from fastapi.middleware.cors import CORSMiddleware
@@ -36,39 +38,26 @@ def read_homepage():
 
 @app.post("/preview")
 def process_video_preview(payload: VideoSubmission, db = Depends(get_db)): #Depends used for cleanup
-#read data the user passed into endpoint
-    user_url = payload.url
-
-    download_options = {}
-
     try:
-        with yt_dlp.YoutubeDL(download_options) as ydl:
-            info_dict = ydl.extract_info(user_url, download=False)
-            video_title = info_dict.get('title', 'Unknown Title')
-            video_thumbnail = info_dict.get('thumbnail', '')
-
-            new_row_id = create_video_request(db, user_url, video_title, video_thumbnail)
-
-    #configure tool to read details without downloading
-        return {
-        "status": "Success",
-        "title": video_title,
-        "thumbnail": video_thumbnail,
-        "id": new_row_id
-        }
+        result = preview_video(db, payload.url) #preview video needs a database connection and url
+        return {"status": "Success", **result}
     except Exception as e:
-        return {
-            "status": "Error",
-            "message": f"Could not process url",
-            "debug": str(e)
-        }
+        raise HTTPException(status_code=400, detail="Could not process url")
 
+
+@app.get("/requests")
+def read_all_video_requests(db = Depends(get_db)):
+    rows = get_all_video_request(db)
+    result = []
+    for row in rows:
+        result.append({"id": row[0], "url": row[1], "title": row[2], "thumbnail": row[3]})
+    return result
+        
 @app.get("/requests/{request_id}")
 def read_video_request(request_id: int, db = Depends(get_db)):
     row = get_video_request(db, request_id)
     if row is None:
-        return {"status": "Error", 
-                "message": "Request not found"}
+        raise HTTPException(status_code=404, detail="Request not found") #404 status code means not found
     return {
         "id": row[0],
         "url": row[1],
@@ -82,10 +71,10 @@ class VideoUpdate(BaseModel):
     thumbnail: str
 
 @app.put("/requests/{request_id}")
-def update_request(request_id: int, payload: VideoUpdate, db = Depends(get_db)):
+def update_request(request_id: int, payload: VideoUpdate, db = Depends(get_db)): #used for dependency injections for functions
     updated = update_video_request(db, request_id, payload.url, payload.title, payload.thumbnail)
     if updated == 0:
-        return {"status": "Error", "message": "Request not found"}
+        raise HTTPException(status_code=404, detail="Request not found")
     return {
         "status": "Success",
         "id": request_id,
@@ -97,23 +86,18 @@ def update_request(request_id: int, payload: VideoUpdate, db = Depends(get_db)):
 def delete_request(request_id: int, db = Depends(get_db)):
     deleted = delete_video_request(db, request_id)
     if deleted == 0:
-        return {"status": "Error", "message": "Request not found"}
+        raise HTTPException(status_code=404, detail="Request not found")
     return{"status": "Success", "message": f"Request {request_id} deleted"}
 
 @app.post("/download/{request_id}")
-def download_video(request_id: int, db = Depends(get_db)):
-    row = get_video_request(db, request_id)
-    if row is None:
-        return {"status": "Error", "message": "Requests not found"}
-
-    video_url = row[1]
-    download_opts = {
-        'outtmpl': 'downloads/%(title)s.%(ext)s'
-    }
-
-    try:
-        with yt_dlp.YoutubeDL(download_opts) as ydl:
-            ydl.download([video_url])
-        return {"status": "Success", "message": f"Video downloaded for request {request_id}"}
-    except Exception as e:
-        return {"status": "Error", "message": "Could not download video", "debug": str(e)}
+def download_video_endpoint(request_id: int, db = Depends(get_db)):
+        row = get_video_request(db, request_id)
+        if row is None:
+            raise HTTPException(status_code=404, detail="Request not found")
+        try:
+            download_video(db, request_id)
+            return {
+                "status": "Success",
+                "message": f"Video downloaded for request {request_id}"}
+        except Exception as e:
+            raise HTTPException(status_code=400, detail="Could not download video")

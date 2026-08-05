@@ -1,42 +1,58 @@
-def create_video_request(conn, url, title, thumbnail):
+def run_query(conn, sql, params=None, fetch=None):
     cur = conn.cursor()
-    cur.execute(
-        "INSERT INTO video_requests (url, title, thumbnail) VALUES (%s, %s, %s) RETURNING id",
-        (url, title, thumbnail)
-    )
-    new_id = cur.fetchone()[0]
+    cur.execute(sql, params or ())
+    if fetch == "one":
+        result = cur.fetchone()
+    elif fetch == "all":
+        result = cur.fetchall()
+    elif fetch == "rowcount":
+        result = cur.rowcount
+    else:
+        result = None
     conn.commit()
     cur.close()
-    return new_id
+    return result
+
+def create_video_request(conn, url, title, thumbnail):
+    row = run_query(
+        conn,
+        "INSERT INTO video_requests (url, title, thumbnail) VALUES (%s, %s, %s) RETURNING id",
+        (url, title, thumbnail),
+        fetch="one"
+    )
+    return row[0]
 
 def get_video_request(conn, request_id):
-    cur = conn.cursor()
-    cur.execute(
+    id_row = run_query(
+        conn, 
         "SELECT id, url, title, thumbnail FROM video_requests WHERE id = %s",
-        (request_id,) 
+        (request_id,),
+        fetch="one"
     )
-    row = cur.fetchone()
-    cur.close()
-    return row
+    return id_row
+
+def get_all_video_request(conn):
+    return run_query(
+        conn,
+        "SELECT id, url, title, thumbnail FROM video_requests",
+        fetch="all"
+    )
 
 def update_video_request(conn, request_id, url, title, thumbnail):
-    cur = conn.cursor()
-    cur.execute(
+    updated = run_query(
+        conn, 
         "UPDATE video_requests SET url = %s, title = %s, thumbnail = %s WHERE id = %s",
-        (url, title, thumbnail, request_id)
+        (url, title, thumbnail, request_id),
+        fetch="rowcount"
     )
-    updated = cur.rowcount
-    conn.commit()
-    cur.close()
     return updated
 
 def delete_video_request(conn, request_id):
-    cur = conn.cursor()
-    cur.execute(
+    deleted = run_query(
+        conn, 
         "DELETE FROM video_requests WHERE id = %s",
-        (request_id,)
+        (request_id,),
+        fetch="rowcount"
     )
-    deleted = cur.rowcount
-    conn.commit()
-    cur.close()
     return deleted
+

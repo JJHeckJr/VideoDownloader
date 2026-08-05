@@ -52,6 +52,8 @@
 
 body {
   margin: 0;
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  min-height: 100vh;
 }
 
 #root {
@@ -64,6 +66,8 @@ body {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  justify-content: center;
+  align-items: center;
 }
 
 h1,
@@ -74,11 +78,12 @@ h2 {
 }
 
 h1 {
-  font-size: 56px;
+  font-size: 90px;
+  line-height: 1.1;
   letter-spacing: -1.68px;
   margin: 32px 0;
   @media (max-width: 1024px) {
-    font-size: 36px;
+    font-size: 48px;
     margin: 20px 0;
   }
 }
@@ -93,19 +98,4 @@ h2 {
 }
 p {
   margin: 0;
-}
-
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
 }

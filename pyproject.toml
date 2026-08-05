@@ -1,0 +1,17 @@
+[project]
+name = "video-downloader-cli"
+version = "0..1.0"
+dependencies = [
+    "psycopg2-binary",
+    "yt-dlp",
+]
+
+[project.scripts]
+videodownloader = "cli:main"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tools.setuptools]
+py-modles = ["cli", "database", "db_operations", "video_download"]
