@@ -37,7 +37,7 @@ def read_homepage():
     return{"message": "Server is running!"}
 
 @app.post("/preview")
-def process_video_preview(payload: VideoSubmission, db = Depends(get_db)): #Depends used for cleanup
+def process_video_preview(payload: VideoSubmission, db = Depends(get_db)): #Depends used for dependency injection
     try:
         result = preview_video(db, payload.url) #preview video needs a database connection and url
         return {"status": "Success", **result}

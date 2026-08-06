@@ -31,6 +31,14 @@ def get_video_request(conn, request_id):
     )
     return id_row
 
+def get_video_request_by_url(conn, url):
+    return run_query(
+        conn,
+        "SELECT id, url, title, thumbnail FROM video_requests WHERE url = %s",
+        (url,),
+        fetch="one"
+    )
+
 def get_all_video_request(conn):
     return run_query(
         conn,
