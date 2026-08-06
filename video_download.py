@@ -29,6 +29,22 @@ def preview_video(conn, url):
     title, thumbnail = fetch_video_info(url)
     new_id = create_video_request(conn, url, title, thumbnail)
     return {"id": new_id, "url": url, "title": title, "thumbnail": thumbnail}
+
+
+def show_progress(d):
+    if d['status'] == 'downloading':
+        try:
+            downloaded = d.get('downloaded_bytes', 0)
+            total = d.get('total_bytes') or d.get('total_bytes_estimate') or 1
+            percent = downloaded / total * 100
+        except Exception:
+            percent = 0
+        filled = int(percent // 5)
+        bar = "█" * filled + "-" * (20 - filled) #bar calculation
+        print(f"\r[{bar}] {percent:.1f}%", end='', flush=True)
+    elif d['status'] == 'finished':
+        print("\r[" + "█" * 20 + "] 100.0% - Download complete!        ")
+
     
 def download_video(conn, request_id):
     row = get_video_request(conn, request_id)
@@ -47,7 +63,11 @@ def download_video(conn, request_id):
 
     output_path = f"{folder_path}/{title}.mp4"
     download_opts = {
-        'outtmpl': output_path
+        'outtmpl': output_path,
+        'quiet': True,
+        'no_warnings': True,
+        'noprogress': True,
+        'progress_hooks': [show_progress],
     }
     with yt_dlp.YoutubeDL(download_opts) as ydl:
         ydl.download([video_url])
