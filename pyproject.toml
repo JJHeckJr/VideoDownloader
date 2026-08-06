@@ -7,11 +7,12 @@ dependencies = [
 ]
 
 [project.scripts]
-videodownloader = "cli:main"
+videodownloader-cli = "cli:main"
+videodownloader-web = "start_web:main"
 
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-py-modules = ["cli", "database", "db_operations", "video_download", "models"]
+py-modules = ["cli", "database", "db_operations", "video_download", "models", "start_web"]
