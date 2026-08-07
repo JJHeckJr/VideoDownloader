@@ -3,6 +3,7 @@ from pydantic import BaseModel
 import yt_dlp
 from database import get_db
 from video_download import preview_video, download_video
+from download_files import list_downloads, delete_download
 from db_operations import (
 create_video_request, 
 get_video_request, 
@@ -101,3 +102,14 @@ def download_video_endpoint(request_id: int, db = Depends(get_db)):
                 "message": f"Video downloaded for request {request_id}"}
         except Exception as e:
             raise HTTPException(status_code=400, detail="Could not download video")
+
+@app.get("/downloads")
+def read_downloads():
+    return list_downloads()
+
+@app.delete("/downloads/{folder_name}")
+def delete_download_endpoint(folder_name: str):
+    deleted = delete_download(folder_name)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Download not found")
+    return {"status": "Success", "message": f"Deleted {folder_name}"}
