@@ -4,6 +4,7 @@ version = "0.1.0"
 dependencies = [
     "psycopg2-binary",
     "yt-dlp",
+    "Pillow",
 ]
 
 [project.scripts]
@@ -15,4 +16,4 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-py-modules = ["cli", "database", "db_operations", "video_download", "models", "start_web"]
+py-modules = ["cli", "database", "db_operations", "video_download", "models", "start_web", "thumbnail_art"]
