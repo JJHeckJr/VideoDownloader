@@ -13,6 +13,7 @@ get_all_video_request,
 )
 
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 
 #App Instance
@@ -29,6 +30,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.mount("/downloads-static", StaticFiles(directory="downloads"), name="downloads-static") #given url, look for file in downloads folder and send contents back
 
 class VideoSubmission(BaseModel):
     url: str
