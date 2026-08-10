@@ -5,6 +5,7 @@ dependencies = [
     "psycopg2-binary",
     "yt-dlp",
     "Pillow",
+    "textual"
 ]
 
 [project.scripts]

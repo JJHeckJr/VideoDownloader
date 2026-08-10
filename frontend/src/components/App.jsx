@@ -51,7 +51,7 @@ async function handleViewRequestsClick() {
     {activeView === 'downloads' ? (
       <Downloads />
     ) : (
-      <>
+      <div className="home-content">
         <div className="input-row">
           <input
             type="text"
@@ -76,7 +76,7 @@ async function handleViewRequestsClick() {
           </div>
         )}
         <pre>{JSON.stringify(requests, null, 2)}</pre>
-      </>
+      </div>
     )}
   </div>
   </>
