@@ -1,6 +1,6 @@
 import subprocess
 def main():
-    backend = subprocess.Popen(["uvicorn", "main:app", "--reload"])
+    backend = subprocess.Popen(["uvicorn", "backend.main:app", "--reload"])
     frontend = subprocess.Popen(["npm", "run", "dev"], cwd="frontend")
     try:
         frontend.wait()

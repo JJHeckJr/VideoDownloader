@@ -1,12 +1,10 @@
 from fastapi import FastAPI, Depends, HTTPException
 from pydantic import BaseModel
-import yt_dlp
-from database import get_db
-from video_download import preview_video, download_video
-from download_files import list_downloads, delete_download
-from db_operations import (
-create_video_request, 
-get_video_request, 
+from backend.db.db_connection import get_db
+from backend.services.video_download import preview_video, download_video
+from backend.services.download_files import list_downloads, delete_download
+from backend.db.db_operations import (
+get_video_request,
 update_video_request,
 delete_video_request,
 get_all_video_request,

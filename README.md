@@ -33,7 +33,7 @@ Available commands inside the CLI:
 - `quit`: exit 
 
 ## Web UI
-React frontend, backed by the FastAPI server (`main.py`). Run both together with:
+React frontend, backed by the FastAPI server (`backend/main.py`). Run both together with:
 ```
 videodownloader-web
 ```

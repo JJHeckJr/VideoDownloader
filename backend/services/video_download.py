@@ -2,8 +2,8 @@ import os
 import urllib.request
 
 import yt_dlp
-from db_operations import (
-    create_video_request, 
+from backend.db.db_operations import (
+    create_video_request,
     get_video_request,
     get_video_request_by_url
 )
@@ -46,7 +46,7 @@ def show_progress(d):
         print("\r[" + "█" * 20 + "] 100.0% - Download complete!        ")
 
     
-def download_video(conn, request_id):
+def download_video(conn, request_id, progress_hook=None):
     row = get_video_request(conn, request_id)
     if row is None:
         return None
@@ -67,7 +67,7 @@ def download_video(conn, request_id):
         'quiet': True,
         'no_warnings': True,
         'noprogress': True,
-        'progress_hooks': [show_progress],
+        'progress_hooks': [progress_hook or show_progress],
     }
     with yt_dlp.YoutubeDL(download_opts) as ydl:
         ydl.download([video_url])
