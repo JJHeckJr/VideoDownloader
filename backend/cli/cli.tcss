@@ -1,0 +1,62 @@
+Screen {
+    background: #0f1117;
+    color: #d8d8de;
+    layout: vertical;
+}
+
+#body {
+    layout: horizontal;
+    height: 1fr;
+}
+
+#nav {
+    width: 18;
+    border-right: solid #aa3bff;
+    background: #16171d;
+}
+
+#nav > ListItem.--highlight {
+    background: #aa3bff 30%;
+    color: #ffffff;
+}
+
+#item-list {
+    width: 1fr;
+    border-right: solid #2e303a;
+    background: #0f1117;
+}
+
+#item-list > ListItem.--highlight {
+    background: #aa3bff 30%;
+    color: #ffffff;
+}
+
+#detail {
+    width: 1fr;
+    padding: 1 2;
+    background: #16171d;
+}
+
+#statusline {
+    height: 1;
+    background: #aa3bff;
+    color: #ffffff;
+    padding: 0 1;
+}
+
+
+#statusline.-danger {
+    background: #dc4646;
+}
+
+#statusline.-success {
+    background: #50c878;
+    color: #0f1117;
+}
+
+#command-input{
+    height: 1;
+    border: none;
+    background: #0f1117;
+    color: #d8d8de;
+}

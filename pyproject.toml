@@ -9,12 +9,13 @@ dependencies = [
 ]
 
 [project.scripts]
-videodownloader-cli = "cli:main"
-videodownloader-web = "start_web:main"
+videodownloader-cli = "backend.cli.cli:main"
+videodownloader-web = "backend.start_web:main"
 
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-py-modules = ["cli", "database", "db_operations", "video_download", "models", "start_web", "thumbnail_art"]
+packages = ["backend", "backend.cli", "backend.db", "backend.services"]
+package-data = { "backend.cli" = ["cli.tcss"] }
