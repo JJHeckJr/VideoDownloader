@@ -1,10 +1,12 @@
 from fastapi import FastAPI, Depends, HTTPException
 from pydantic import BaseModel
+import yt_dlp
 from backend.db.db_connection import get_db
 from backend.services.video_download import preview_video, download_video
 from backend.services.download_files import list_downloads, delete_download
 from backend.db.db_operations import (
-get_video_request,
+create_video_request, 
+get_video_request, 
 update_video_request,
 delete_video_request,
 get_all_video_request,
@@ -52,9 +54,9 @@ def read_all_video_requests(db = Depends(get_db)):
     rows = get_all_video_request(db)
     result = []
     for row in rows:
-        result.append({"id": row[0], "url": row[1], "title": row[2], "thumbnail": row[3]})
+        result.append({"id": row[0], "url": row[1], "title": row[2], "thumbnail": row[3], "description": row[4]})
     return result
-        
+
 @app.get("/requests/{request_id}")
 def read_video_request(request_id: int, db = Depends(get_db)):
     row = get_video_request(db, request_id)
@@ -64,17 +66,19 @@ def read_video_request(request_id: int, db = Depends(get_db)):
         "id": row[0],
         "url": row[1],
         "title": row[2],
-        "thumbnail": row[3]
+        "thumbnail": row[3],
+        "description": row[4]
     }
 
 class VideoUpdate(BaseModel):
     url: str
     title: str
     thumbnail: str
+    description: str
 
 @app.put("/requests/{request_id}")
 def update_request(request_id: int, payload: VideoUpdate, db = Depends(get_db)): #used for dependency injections for functions
-    updated = update_video_request(db, request_id, payload.url, payload.title, payload.thumbnail)
+    updated = update_video_request(db, request_id, payload.url, payload.title, payload.thumbnail, payload.description)
     if updated == 0:
         raise HTTPException(status_code=404, detail="Request not found")
     return {
@@ -82,6 +86,7 @@ def update_request(request_id: int, payload: VideoUpdate, db = Depends(get_db)):
         "id": request_id,
         "url": payload.url,
         "title": payload.title,
+        "description": payload.description,
     }
 
 @app.delete("/requests/{request_id}")

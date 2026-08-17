@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS video_requests(
 id SERIAL PRIMARY KEY, 
 url TEXT NOT NULL,
 title TEXT,
-thumbnail TEXT
+thumbnail TEXT,
+description TEXT
 );
 """
