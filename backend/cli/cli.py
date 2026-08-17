@@ -1,16 +1,18 @@
 from textual.app import App, ComposeResult
-from textual.containers import Horizontal
-from textual.reactive import reactive
-from textual.widgets import ListView, ListItem, Label, Static, Input
+from textual.containers import Horizontal, Container, Center, VerticalScroll
+from textual.widgets import ListView, ListItem, Label, Static, ContentSwitcher, Input
 
+import os
 import psycopg2
-import time 
+import time
 import subprocess
 
 from backend.db.db_connection import DATABASE_URL
 from backend.db.db_operations import get_all_video_request
-from backend.services.download_files import list_downloads
+from backend.services.download_files import list_downloads, DOWNLOADS_DIR
+from backend.services.video_download import preview_video
 from backend.db.schema import CREATE_VIDEO_REQUESTS_TABLE
+from backend.cli.thumbnail_art import get_thumbnail_art
 
 def setup_database():
     subprocess.run(["docker", "compose", "up", "-d"], check=True)
@@ -22,109 +24,136 @@ def setup_database():
         except psycopg2.OperationalError:
             print("Waiting for database to be ready...")
             time.sleep(1)
-
     else:
         print("Could not connect to the database")
         return None
-
     cur = conn.cursor()
     cur.execute(CREATE_VIDEO_REQUESTS_TABLE)
     conn.commit()
     return conn
 
-class VideoDownloaderApp(App):
-    CSS_PATH = "cli.tcss" #no need to manually import the css styling
-    active_section = reactive("requests")
+class NavList(ListView, can_focus=False):
+    """Tab strip: selection is driven by app-level bindings and mouse
+    clicks, not ListView's own up/down cursor bindings."""
+
+
+class VideoDownloader(App):
+    CSS_PATH = "cli.tcss" #with textual, importing the styling is not needed
+    AUTO_FOCUS = None  # url-input steal focus from nav shortcuts on mount
+    BINDINGS = [
+        ("escape", "go_home", "Home"),
+        ("up, left, w, a, p", "nav_previous", "Previews"),
+        ("down, right, s, d", "nav_next", "Downloads"),
+    ]
 
     def __init__(self, conn):
         super().__init__()
         self.conn = conn
 
-    def on_mount(self) -> None:
-        self.load_items()
-
-    def compose(self) -> ComposeResult: #rendering similar to return in jsx
-        with Horizontal(id="body"):
-            yield ListView(
-                ListItem(Label("Requests"), id="nav-requests"),
+    def compose(self) -> ComposeResult:
+        with Container(id="window"):
+            yield NavList(
+                ListItem(Label("Previews"), id="nav-previews"),
                 ListItem(Label("Downloads"), id="nav-downloads"),
                 id="nav",
+                initial_index=None,
             )
-            yield ListView(id="item-list")
-            yield Static("Select an item to see details", id="detail")
+            with ContentSwitcher(initial="home", id="main"):
+                with Container(id="home"):
+                    with Center():
+                        yield Static("Video Downloader", id="home-title")
+                    with Center():
+                        yield Input(placeholder="Paste a video URL", id="url-input")
+                yield Container(ListView(id="previews-list"), id="previews")
+                with Horizontal(id="downloads"):
+                    yield ListView(id="downloads-list")
+                    with Container(id="details-panel"):
+                        yield Static(id="details-thumbnail")
+                        with VerticalScroll(id="details-description-scroll"):
+                            yield Static(id="details-description")
+        yield Static("NORMAL", id="statusline")
 
-            
-        yield Static("NORMAL  |  0 items", id="statusline") #from template textual module
+    def action_go_home(self) -> None:
+        self.query_one("#main", ContentSwitcher).current = "home"
+        self.query_one("#nav", ListView).index = None
 
+    def action_nav_previous(self) -> None:
+        self.query_one("#nav", ListView).index = 0
 
-    #tracks highlighted list
+    def action_nav_next(self) -> None:
+        self.query_one("#nav", ListView).index = 1
+
+    def on_input_submitted(self, event: Input.Submitted) -> None:
+        if event.input.id != "url-input":
+            return
+        url = event.value.strip()
+        if not url:
+            return
+
+        status = self.query_one("#statusline", Static)
+        try:
+            preview_video(self.conn, url)
+        except Exception:
+            status.update("Could not process URL")
+            status.add_class("-danger")
+            return
+
+        status.remove_class("-danger")
+        status.update("NORMAL")
+        event.input.value = ""
+        self.query_one("#nav", ListView).index = 0
+
     def on_list_view_highlighted(self, event: ListView.Highlighted) -> None:
-        if event.list_view.id == "nav" and event.item is not None:
-            self.active_section = "downloads" if event.item.id == "nav-downloads" else "requests"
-        elif event.list_view.id =="item-list" and event.item is not None:
-            highlighted_index = event.list_view.index
-            selected_item = self.current_items[highlighted_index]
-            self.show_detail(selected_item)
+        if event.list_view.id == "nav":
+            if event.item is None:
+                return
+            target = "downloads" if event.item.id == "nav-downloads" else "previews"
+            self.query_one("#main", ContentSwitcher).current = target
+            if target == "downloads":
+                self.load_downloads()
+            else:
+                self.load_previews()
+        elif event.list_view.id == "downloads-list":
+            self.show_download_details(event.list_view.index)
 
-    def show_detail(self, item) -> None:
-        if self.active_section == "requests":
-            detail_text = f"[{item['id']}] {item['title']}\n{item['url']}"
-        else:
-            detail_text = f"{item['folder']}\nVideo file: {item['video_file']}\nThumbnail file: {item['thumbnail_file']}"
-        detail = self.query_one("#detail", Static)
-        detail.update(detail_text)
+    def load_previews(self) -> None:
+        previews_list = self.query_one("#previews-list", ListView)
+        previews_list.clear()
+        for request_id, url, title, _thumbnail, _description in get_all_video_request(self.conn):
+            previews_list.append(ListItem(Label(f"[{request_id}] {title or url}")))
+        self.set_focus(previews_list)
+
+    def load_downloads(self) -> None:
+        downloads_list = self.query_one("#downloads-list", ListView)
+        downloads_list.clear()
+        self.downloads = list_downloads()
+        for download in self.downloads:
+            downloads_list.append(ListItem(Label(download["folder"])))
+        self.set_focus(downloads_list)
+        self.show_download_details(downloads_list.index)
+
+    def show_download_details(self, index: int | None) -> None:
+        thumbnail = self.query_one("#details-thumbnail", Static)
+        description = self.query_one("#details-description", Static)
+        if index is None or not (0 <= index < len(self.downloads)):
+            thumbnail.update("")
+            description.update("No download selected")
+            return
+
+        download = self.downloads[index]
+        thumbnail_path = None
+        if download["thumbnail_file"]:
+            thumbnail_path = os.path.join(DOWNLOADS_DIR, download["folder"], download["thumbnail_file"])
+        art = get_thumbnail_art(thumbnail_path)
+        thumbnail.update(art or "No thumbnail available")
+        description.update(download["description"] or "No description available")
 
 
-    def watch_active_section(self, section: str) -> None:
-        self.load_items()
-
-    def load_items(self) -> None:
-        items = []
-        if self.active_section == "requests":
-            rows = get_all_video_request(self.conn)
-            for row in rows:
-                request_id = row[0]
-                url = row[1]
-                title = row[2]
-                if title:
-                    display_text = title
-                else:
-                    display_text = url
-                items.append({
-                    "id": request_id,
-                    "url": url,
-                    "title": title,
-                    "thumbnail": row[3],
-                    "label": f"[{request_id}] {display_text}",
-                })
-        else:
-            downloads = list_downloads()
-            for download in downloads:
-                folder_name = download["folder"]
-                items.append({
-                    "id": None,
-                    "folder": folder_name,
-                    "video_file": download["video_file"],
-                    "thumbnail_file": download["thumbnail_file"],
-                    "label": folder_name
-                })
-        item_list = self.query_one("#item-list", ListView)
-        item_list.clear() #clears rows when switching from "Requests" or "Downloads"
-
-        for item in items:
-            item_list.append(ListItem(Label(item["label"])))
-
-        section_name = self.active_section.capitalize()
-        item_count = len(items)
-        status = self.query_one("#statusline", Static) #getElementbyid count
-        status.update(f"NORMAL | {section_name} | {item_count} items")
-        self.current_items = items
-        
 def main():
     conn = setup_database()
     if conn is None:
         return
-    app = VideoDownloaderApp(conn)
+    app = VideoDownloader(conn)
     app.run()
     conn.close()
 

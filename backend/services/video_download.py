@@ -3,7 +3,7 @@ import urllib.request
 
 import yt_dlp
 from backend.db.db_operations import (
-    create_video_request,
+    create_video_request, 
     get_video_request,
     get_video_request_by_url
 )
@@ -14,7 +14,8 @@ def fetch_video_info(url):
         info_dict = ydl.extract_info(url, download=False)
     title = info_dict.get('title', 'Unknown Title')
     thumbnail = info_dict.get('thumbnail', "Unknown Thumbnail")
-    return title, thumbnail
+    description = info_dict.get('description', '')
+    return title, thumbnail, description
 
 def sanitize_filename(name):
     invalid_chars = '/\\:*?"<>|'
@@ -25,10 +26,10 @@ def sanitize_filename(name):
 def preview_video(conn, url):
     existing = get_video_request_by_url(conn, url)
     if existing:
-        return {"id": existing[0], "url": existing[1], "title": existing[2], "thumbnail": existing[3]}
-    title, thumbnail = fetch_video_info(url)
-    new_id = create_video_request(conn, url, title, thumbnail)
-    return {"id": new_id, "url": url, "title": title, "thumbnail": thumbnail}
+        return {"id": existing[0], "url": existing[1], "title": existing[2], "thumbnail": existing[3], "description": existing[4]}
+    title, thumbnail, description = fetch_video_info(url)
+    new_id = create_video_request(conn, url, title, thumbnail, description)
+    return {"id": new_id, "url": url, "title": title, "thumbnail": thumbnail, "description": description}
 
 
 def show_progress(d):
@@ -53,6 +54,7 @@ def download_video(conn, request_id, progress_hook=None):
     video_url = row[1]
     title = sanitize_filename(row[2])
     thumbnail_url = row[3]
+    description = row[4]
 
     folder_path = f"downloads/{title}"
     counter = 1
@@ -74,6 +76,10 @@ def download_video(conn, request_id, progress_hook=None):
 
     thumbnail_path = f"{folder_path}/{title}.jpg"
     urllib.request.urlretrieve(thumbnail_url, thumbnail_path)
+
+    description_path = f"{folder_path}/{title}.txt"
+    with open(description_path, "w", encoding="utf-8") as description_file:
+        description_file.write(description or "")
 
     return True
   
