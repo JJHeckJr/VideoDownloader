@@ -70,6 +70,7 @@ def download_video(conn, request_id, progress_hook=None):
         'no_warnings': True,
         'noprogress': True,
         'progress_hooks': [progress_hook or show_progress],
+        'extractor_args': {'youtube': {'player_client': ['android']}},
     }
     with yt_dlp.YoutubeDL(download_opts) as ydl:
         ydl.download([video_url])
