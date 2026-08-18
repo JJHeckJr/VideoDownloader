@@ -59,13 +59,30 @@ Screen {
     padding: 1 2;
 }
 
+#previews-list,
 #downloads-list {
     width: 40%;
     height: 1fr;
     layout: vertical;
-    padding: 0 2;
+    padding: 0 0 0 2;
+    scrollbar-size-vertical: 1;
+    scrollbar-background: #16171d;
+    scrollbar-color: #aa3bff 60%;
+    scrollbar-color-hover: #aa3bff;
+    scrollbar-color-active: #aa3bff;
 }
 
+#previews-list > ListItem,
+#downloads-list > ListItem {
+    margin-bottom: 1;
+    padding-right: 1;
+}
+
+.list-label {
+    width: 1fr;
+}
+
+#preview-details-panel,
 #details-panel {
     width: 1fr;
     height: 1fr;
@@ -73,16 +90,53 @@ Screen {
     padding: 0 2;
 }
 
+#preview-details-thumbnail,
 #details-thumbnail {
     height: auto;
+    max-height: 18;
+    margin-bottom: 1;
 }
 
+#preview-details-description-scroll,
 #details-description-scroll {
+    height: 1fr;
+    padding-right: 1;
+    scrollbar-size-vertical: 1;
+    scrollbar-background: #16171d;
+    scrollbar-color: #aa3bff 60%;
+    scrollbar-color-hover: #aa3bff;
+    scrollbar-color-active: #aa3bff;
+}
+
+#preview-edit-form {
+    display: none;
+    width: 1fr;
+    height: 1fr;
+    layout: vertical;
+    padding: 0 2;
+}
+
+#edit-title-input,
+#edit-url-input {
+    margin-bottom: 1;
+}
+
+#edit-url-hint {
+    color: #aa3bff;
+    margin-bottom: 1;
+}
+
+#edit-description-input {
     height: 1fr;
 }
 
-#statusline {
+#footer-bar {
     dock: bottom;
+    height: auto;
+    layout: vertical;
+}
+
+#statusline {
     height: 1;
     background: #aa3bff;
     color: #ffffff;
