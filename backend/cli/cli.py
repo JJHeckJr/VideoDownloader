@@ -308,13 +308,16 @@ class VideoDownloader(App):
         self.show_preview_details(previews_list.index)
 
     def show_preview_details(self, index: int | None) -> None:
+        panel = self.query_one("#preview-details-panel")
         thumbnail = self.query_one("#preview-details-thumbnail", Static)
         description = self.query_one("#preview-details-description", Static)
         if index is None or not (0 <= index < len(self.previews)):
+            panel.add_class("-empty")
             thumbnail.update("")
             description.update("No preview selected")
             return
 
+        panel.remove_class("-empty")
         preview = self.previews[index]
         art = get_thumbnail_art(preview["thumbnail"], width=67)
         thumbnail.update(art or "No thumbnail available")
@@ -338,13 +341,16 @@ class VideoDownloader(App):
         self.show_download_details(downloads_list.index)
 
     def show_download_details(self, index: int | None) -> None:
+        panel = self.query_one("#details-panel")
         thumbnail = self.query_one("#details-thumbnail", Static)
         description = self.query_one("#details-description", Static)
         if index is None or not (0 <= index < len(self.downloads)):
+            panel.add_class("-empty")
             thumbnail.update("")
             description.update("No download selected")
             return
 
+        panel.remove_class("-empty")
         download = self.downloads[index]
         thumbnail_path = None
         if download["thumbnail_file"]:
