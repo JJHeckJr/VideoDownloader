@@ -108,6 +108,16 @@ Screen {
     scrollbar-color-active: #aa3bff;
 }
 
+#preview-details-panel.-empty #preview-details-description-scroll,
+#details-panel.-empty #details-description-scroll {
+    align: center middle;
+}
+
+#preview-details-panel.-empty #preview-details-description,
+#details-panel.-empty #details-description {
+    content-align: center middle;
+}
+
 #preview-edit-form {
     display: none;
     width: 1fr;
