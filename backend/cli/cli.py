@@ -4,6 +4,7 @@ from textual.widgets import ListView, ListItem, Label, Static, ContentSwitcher, 
 
 import os
 import psycopg2
+import sys
 import time
 import subprocess
 
@@ -14,7 +15,31 @@ from backend.services.video_download import preview_video, download_video, fetch
 from backend.db.schema import CREATE_VIDEO_REQUESTS_TABLE
 from backend.cli.thumbnail_art import get_thumbnail_art
 
+DOCKER_DESKTOP_PATH = r"C:\Program Files\Docker\Docker\Docker Desktop.exe"
+
+def ensure_docker_running():
+    def docker_is_up():
+        return subprocess.run(["docker", "info"], capture_output=True).returncode == 0
+
+    if docker_is_up():
+        return
+
+    if sys.platform == "win32":
+        subprocess.Popen([DOCKER_DESKTOP_PATH])
+    elif sys.platform == "darwin":
+        subprocess.Popen(["open", "-a", "Docker"])
+    else:
+        raise RuntimeError("Docker engine is not running. Please start it and try again.")
+
+    print("Starting Docker...")
+    for _ in range(60):
+        if docker_is_up():
+            return
+        time.sleep(2)
+    raise RuntimeError("Timed out waiting for Docker to start")
+
 def setup_database():
+    ensure_docker_running()
     subprocess.run(["docker", "compose", "up", "-d"], check=True)
 
     for _ in range(10):
