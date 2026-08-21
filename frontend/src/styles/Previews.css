@@ -1,0 +1,131 @@
+.previews {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 28px;
+    margin-top: 24px;
+    padding: 5px
+}
+
+.preview-list-card {
+    --accent: 20 20 20;
+    --radius: 22px;
+
+    position: relative;
+    isolation: isolate;
+    display: block;
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: rgb(var(--accent));
+}
+
+.preview-list-card__image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.preview-list-card__scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      to top,
+      rgb(var(--accent)) 0%,
+      rgb(var(--accent) / 0.92) 26%,
+      rgb(var(--accent) / 0.55) 48%,
+      rgb(var(--accent) / 0.1) 70%,
+      transparent 100%
+    );
+}
+
+.preview-list-card__body {
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    color: #fff;
+}
+
+.preview-list-card__title {
+    margin: 0;
+    font-size: clamp(1.05rem, 1.6vw + 0.6rem, 1.45rem);
+    font-weight: 650;
+    line-height: 1.18;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+    overflow-wrap: anywhere;
+
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.preview-list-card__menu-button {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    background: rgba(20, 20, 20, 0.35);
+    color: #fff;
+    cursor: pointer;
+}
+
+.preview-list-card__menu-button:hover {
+  background: rgba(60, 60, 60, 0.85);
+}
+
+.preview-list-card__menu {
+  position: absolute;
+  top: 52px;
+  right: 14px;
+  min-width: 120px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(30, 30, 30, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  z-index: 3;
+}
+
+.preview-list-card__menu-item {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: none;
+  color: #ff8080;
+  text-align: left;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.preview-list-card__menu-item:hover {
+  background: rgba(200, 40, 40, 0.85);
+  color: #fff;
+}
+
+.previews-error {
+  margin: 16px 0;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(220, 70, 70, 0.4);
+  background: rgba(220, 70, 70, 0.12);
+  color: #ffb4b4;
+}
+
+.previews-empty {
+  padding: 48px 0;
+  opacity: 0.6;
+}

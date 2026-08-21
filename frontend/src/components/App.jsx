@@ -2,6 +2,7 @@ import { use, useState } from 'react'
 import '../styles/App.css'
 import Sidebar from './Sidebar'
 import Downloads from './Downloads'
+import Previews from './Previews'
 import { getPreviews, previewVideo } from '../services/previewsService'
 import { downloadVideo } from '../services/downloadsService'
 
@@ -50,6 +51,8 @@ async function handleViewRequestsClick() {
     <h1>Video Downloader</h1>
     {activeView === 'downloads' ? (
       <Downloads />
+    ) : activeView === 'previews' ? (
+      <Previews />
     ) : (
       <div className="home-content">
         <div className="input-row">
