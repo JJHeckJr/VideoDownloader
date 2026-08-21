@@ -2,7 +2,7 @@ import { use, useState } from 'react'
 import '../styles/App.css'
 import Sidebar from './Sidebar'
 import Downloads from './Downloads'
-import { getRequests, previewVideo } from '../services/requestsService'
+import { getPreviews, previewVideo } from '../services/previewsService'
 import { downloadVideo } from '../services/downloadsService'
 
 function App() {
@@ -36,7 +36,7 @@ async function handleDownloadClick() {
 
 async function handleViewRequestsClick() {
   try {
-    const data = await getRequests()
+    const data = await getPreviews()
     setRequests(data)
   } catch (err) {
     setError(err.message || 'Could not reach the server.')

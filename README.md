@@ -5,6 +5,7 @@ Downloads videos from a URL, stores them locally with their metadata, browses th
 ## Prerequisites
 - Python 3.13+
 - Docker (for Postgres database)
+- Node.js + npm (for the frontend dev server, Web UI only)
 
 ## Setup
 From project root with a virtual environment activated:
@@ -40,3 +41,5 @@ videodownloader-web
 This starts the backend and the frontend dev server together, and stops both cleanly on Ctrl+C.
 
 (First time only: run `npm install` inside `frontend/` before using this command.)
+
+`pip install -e .` installs `fastapi` and `uvicorn` along with the rest of the backend's dependencies, so no separate install step is needed for the API server.
